@@ -118,7 +118,7 @@ def get_formatted_message() -> str:
         f"{_format_inr(prices['gold_inr_per_gram'])}\n"
         "🥈 *Silver (1g):* "
         f"{_format_inr(prices['silver_inr_per_gram'])}\n"
-        f"💱 *USD/INR:* {prices['usd_inr']:.2f}\n"
+        f"💱 *1 USD =* {_format_inr(prices['usd_inr'])}\n"
         f"🕒 *Updated:* {timestamp}"
     )
 
