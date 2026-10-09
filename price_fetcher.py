@@ -123,26 +123,39 @@ def get_formatted_message() -> str:
     )
 
 
-def send_telegram_message(text: str, token: str | None = None, chat_id: str | None = None) -> None:
-    """Post a Markdown message to the configured Telegram chat."""
-    token = token or os.getenv("TELEGRAM_TOKEN", "")
-    chat_id = chat_id or os.getenv("CHAT_ID", "")
-    if not token or not chat_id:
-        raise RuntimeError("Set TELEGRAM_TOKEN and CHAT_ID before sending.")
+def send_telegram_message(text: str, token: str | None = None, chat_ids: str | None = None) -> None:
+    """Post a Markdown message to every chat listed in CHAT_IDS.
 
-    response = requests.post(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "Markdown",
-        },
-        timeout=20,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    if not payload.get("ok"):
-        raise RuntimeError(payload.get("description", "Telegram API rejected the message."))
+    CHAT_IDS is a comma-separated string, for example
+    "-100123456789,-1004482091161". A failure for one chat is printed and
+    does not stop delivery to the remaining chats.
+    """
+    token = token or os.getenv("TELEGRAM_TOKEN", "")
+    raw_ids = chat_ids if chat_ids is not None else os.getenv("CHAT_IDS", "")
+    ids = [chat_id.strip() for chat_id in raw_ids.split(",") if chat_id.strip()]
+    if not token or not ids:
+        raise RuntimeError("Set TELEGRAM_TOKEN and CHAT_IDS before sending.")
+
+    for chat_id in ids:
+        try:
+            response = requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": text,
+                    "parse_mode": "Markdown",
+                },
+                timeout=20,
+            )
+            if response.status_code != 200:
+                print(f"Failed to send to {chat_id}: HTTP {response.status_code} {response.text}")
+                continue
+            payload = response.json()
+            if not payload.get("ok"):
+                description = payload.get("description", "Telegram API rejected the message.")
+                print(f"Failed to send to {chat_id}: {description}")
+        except requests.RequestException as exc:
+            print(f"Failed to send to {chat_id}: {exc}")
 
 
 def main() -> None:
@@ -155,14 +168,14 @@ def main() -> None:
     print(message)
 
     token = os.getenv("TELEGRAM_TOKEN", "")
-    chat_id = os.getenv("CHAT_ID", "")
-    if token and chat_id:
-        send_telegram_message(message, token, chat_id)
+    chat_ids = os.getenv("CHAT_IDS", "")
+    if token and chat_ids:
+        send_telegram_message(message, token, chat_ids)
         return
 
     # Scheduled runs must fail loudly if the repo secrets were not configured.
     if os.getenv("CI"):
-        raise SystemExit("Set TELEGRAM_TOKEN and CHAT_ID to send notifications.")
+        raise SystemExit("Set TELEGRAM_TOKEN and CHAT_IDS to send notifications.")
 
 
 if __name__ == "__main__":
