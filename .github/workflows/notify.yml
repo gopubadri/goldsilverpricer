@@ -4,8 +4,8 @@ name: Gold and silver price notification
 on:
   workflow_dispatch:
   schedule:
-    # 09:00, 13:00, and 18:00 IST (UTC+5:30), Monday–Friday.
-    - cron: "30 3,7,12 * * 1-5"
+    # Every 30 minutes, all day. GitHub cron is UTC.
+    - cron: "*/30 * * * *"
 
 jobs:
   notify:
