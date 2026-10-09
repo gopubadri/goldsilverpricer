@@ -29,11 +29,6 @@ MARKET_CLOSED_MESSAGE = (
     "right now. Please try again shortly."
 )
 
-DISCLAIMER = (
-    "⚠️ *Note:* International spot rate converted to INR. "
-    "Local jeweler prices may vary due to import duties & making charges."
-)
-
 
 def _is_valid_price(value: object) -> bool:
     """Return True when value is a finite, positive number."""
@@ -124,8 +119,7 @@ def get_formatted_message() -> str:
         "🥈 *Silver (1g):* "
         f"{_format_inr(prices['silver_inr_per_gram'])}\n"
         f"💱 *USD/INR:* {prices['usd_inr']:.2f}\n"
-        f"🕒 *Updated:* {timestamp}\n\n"
-        f"{DISCLAIMER}"
+        f"🕒 *Updated:* {timestamp}"
     )
 
 
