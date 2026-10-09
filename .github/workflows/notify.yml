@@ -1,4 +1,5 @@
 name: Gold and silver price notification
+# Sends INR-per-gram gold and silver prices to Telegram.
 
 on:
   workflow_dispatch:
